@@ -49,6 +49,11 @@ Vagrant.configure(2) do |config|
       item.vm.provider val['provider'] do |vb|
         vb.memory = val['memory']
 
+        if val['cpus']
+          vb.customize ["modifyvm", :id, "--cpus", val['cpus']]
+          vb.customize ["modifyvm", :id, "--ioapic", "on"]
+        end
+
         # Use paravirtualized network in virtualbox for better performance
         # https://www.virtualbox.org/manual/ch06.html#nichardware
         if val['provider'] == 'virtualbox'
