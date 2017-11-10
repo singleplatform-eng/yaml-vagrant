@@ -16,18 +16,17 @@ def load_settings(overrides)
     'ansible_limit'                 => 'all',
     'ansible_playbook'              => nil,
     'ansible_raw_arguments'         => nil,
-    'box'                           => 'ubuntu/trusty64',
     'disable_default_synced_folder' => true,
     'domain'                        => '.local',
+    'has_ssh'                       => true,
     'hostmanager_enabled'           => true,
     'hostmanager_ignore_private_ip' => false,
-    'hostmanager_include_offline'   => true,
+    'hostmanager_include_offline'   => false,
     'hostmanager_manage_guest'      => true,
     'hostmanager_manage_host'       => true,
-    'memory'                        => 512,
-    'provider'                      => 'virtualbox',
+    'provider'                      => 'docker',
+    'remains_running'               => false,
     'shell'                         => nil,
-    'synced_directories'            => [],
     'user'                          => 'vagrant',
     'vms'                           => [{'name' => 'default', 'ip' => '192.168.123.123'}]
   }
@@ -142,7 +141,6 @@ Vagrant.configure(2) do |config|
   # configure VMs
   settings['vms'].each do |val|
     config.vm.define val['name'] do |item|
-      item.vm.box              = val['box']
       item.vm.hostname         = val['name'] + settings['domain']
 
       # default alias to vm name
@@ -152,26 +150,17 @@ Vagrant.configure(2) do |config|
       item.vm.network 'private_network', ip: val['ip']
 
       # vm provider and resource settings
-      item.vm.provider val['provider'] do |vb|
-        vb.memory = val['memory']
+      item.vm.provider val['provider'] do |provider|
+        provider.name = val['name']
+        provider.image = val['image']
+        provider.volumes = val['volumes']
+        provider.has_ssh = val['has_ssh']
+        provider.remains_running = val['remains_running']
 
-        # Use paravirtualized network in virtualbox for better performance
-        # https://www.virtualbox.org/manual/ch06.html#nichardware
-        if val['provider'] == 'virtualbox'
-          vb.customize ["modifyvm", :id, "--nictype1", "virtio"]
-          vb.customize ["modifyvm", :id, "--nictype2", "virtio"]
-        end
       end
 
       # disable default synced folder
       item.vm.synced_folder ".", "/vagrant", disabled: settings['disable_default_synced_folder']
-
-      # vm synced folders
-      val['synced_directories'].each do |mnt|
-        item.vm.synced_folder mnt['src'], mnt['dest'],
-          owner: val['user'],
-          group: val['user']
-      end
 
       # vm shell commands
       item.vm.provision 'shell', inline: val['shell'] if val['shell']
