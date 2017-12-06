@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import yaml
+from re import sub
 
 def setup_cli():
     ''' setup CLI '''
@@ -27,6 +28,15 @@ def build_inventory(host=None):
                 inventory[group]['hosts'] = []
                 inventory[group]['vars'] = {}
             inventory[group]['hosts'].append(host['name'] + domain)
+        # append box version
+        box = sub(r"[/]", "_", config['box'])
+        if host.has_key('box'):
+            box = sub(r"[/]", "_", host['box'])
+        if not inventory.has_key(box):
+            inventory[box] = {}
+            inventory[box]['hosts'] = []
+            inventory[box]['vars'] = {}
+        inventory[box]['hosts'].append(host['name'] + domain)
 
     # build inventory object
     if host:

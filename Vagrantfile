@@ -16,7 +16,6 @@ def load_settings(overrides)
     'ansible_limit'                 => 'all',
     'ansible_playbook'              => nil,
     'ansible_raw_arguments'         => nil,
-    'box'                           => 'ubuntu/trusty64',
     'disable_default_synced_folder' => true,
     'domain'                        => '.local',
     'hostmanager_enabled'           => true,
@@ -26,15 +25,19 @@ def load_settings(overrides)
     'hostmanager_manage_host'       => true,
     'memory'                        => 512,
     'provider'                      => 'virtualbox',
-    'shell'                         => nil,
     'synced_directories'            => [],
-    'user'                          => 'vagrant',
-    'vms'                           => [{'name' => 'default', 'ip' => '192.168.123.123'}]
+    'box_default'                   => {'user' => 'vagrant', 'shell' => nil},
+    'vms'                           => [{'name' => 'default', 'ip' => '192.168.123.123'}],
   }
 
   # merge overrides
   settings.merge!(overrides)
-
+  if settings['box_settings']
+    settings['box_settings'].default(settings['box_default'])
+  else
+    settings['box_settings'] = {}
+    settings['box_settings'].default = settings['box_default']
+  end
   # inherit global settings for undefined vm settings
   # using select to avoid inheriting certain keys
   #   - vms:  we don't want settings['vms']['vms']
@@ -42,7 +45,9 @@ def load_settings(overrides)
   #   - hostmanager*: hostmanager settings do not apply to vms
   vm_settings = settings.select {|k,v| k != 'vms' and k != 'shell' and not k.start_with?('hostmanager')}
   settings['vms'].map! {|vm| vm_settings.merge(vm)}
-
+  settings['vms'].each do |vm|
+    vm['user'] = settings['box_settings'][vm['box']]['user'] if not vm['user']
+  end
   return settings
 end
 
@@ -136,8 +141,6 @@ Vagrant.configure(2) do |config|
     config.hostmanager.manage_host       = settings['hostmanager_manage_host']
   end
 
-  # base shell commands
-  config.vm.provision 'shell', inline: settings['shell'] if settings['shell']
 
   # configure VMs
   settings['vms'].each do |val|
@@ -173,6 +176,8 @@ Vagrant.configure(2) do |config|
           group: val['user']
       end
 
+      # base shell commands
+      config.vm.provision 'shell', inline: val['box_settings'][val['box']]['shell'] if val['box_settings'][val['box']]['shell']
       # vm shell commands
       item.vm.provision 'shell', inline: val['shell'] if val['shell']
 
@@ -185,6 +190,7 @@ Vagrant.configure(2) do |config|
           ansible.raw_arguments     = val['ansible_raw_arguments']
           ansible.extra_vars        = val['ansible_extra_vars']
           ansible.playbook          = val['ansible_playbook']
+	  val['ansible_groups']     += [val['box'].gsub(/[.\/]/,'_'),]
         end
       end
     end
