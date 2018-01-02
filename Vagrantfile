@@ -24,6 +24,7 @@ def load_settings(overrides)
     'hostmanager_manage_guest'      => true,
     'hostmanager_manage_host'       => true,
     'memory'                        => 512,
+    'cpus'                          => 1,
     'provider'                      => 'virtualbox',
     'synced_directories'            => [],
     'box_default'                   => {'user' => 'vagrant', 'shell' => nil},
@@ -157,6 +158,7 @@ Vagrant.configure(2) do |config|
       # vm provider and resource settings
       item.vm.provider val['provider'] do |vb|
         vb.memory = val['memory']
+        vb.cpus = val['cpus']
 
         # Use paravirtualized network in virtualbox for better performance
         # https://www.virtualbox.org/manual/ch06.html#nichardware
