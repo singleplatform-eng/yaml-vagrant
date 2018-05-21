@@ -147,6 +147,7 @@ Vagrant.configure(2) do |config|
   settings['vms'].each do |val|
     config.vm.define val['name'] do |item|
       item.vm.box              = val['box']
+      item.vm.box_url          = val['box_url'] if val['box_url']
       item.vm.hostname         = val['name'] + settings['domain']
 
       # default alias to vm name
