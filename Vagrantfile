@@ -15,6 +15,7 @@ def load_settings(overrides)
     'ansible_inventory_path'        => 'vagrant.py',
     'ansible_limit'                 => 'all',
     'ansible_playbook'              => nil,
+    'ansible_skip_tags'             => [],
     'ansible_raw_arguments'         => nil,
     'disable_default_synced_folder' => true,
     'domain'                        => '.local',
@@ -190,6 +191,7 @@ Vagrant.configure(2) do |config|
           ansible.host_key_checking = false
           ansible.inventory_path    = dirname + val['ansible_inventory_path']
           ansible.limit             = val['ansible_limit']
+          ansible.skip_tags         = val['ansible_skip_tags']
           ansible.raw_arguments     = val['ansible_raw_arguments']
           ansible.extra_vars        = val['ansible_extra_vars']
           ansible.playbook          = val['ansible_playbook']
