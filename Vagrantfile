@@ -167,6 +167,7 @@ Vagrant.configure(2) do |config|
         if val['provider'] == 'virtualbox'
           vb.customize ["modifyvm", :id, "--nictype1", "virtio"]
           vb.customize ["modifyvm", :id, "--nictype2", "virtio"]
+          vb.customize ["modifyvm", :id, "--uartmode1", "disconnected"]
         end
       end
 
