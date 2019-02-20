@@ -28,7 +28,7 @@ def load_settings(overrides)
     'cpus'                          => 1,
     'provider'                      => 'virtualbox',
     'synced_directories'            => [],
-    'box_default'                   => {'user' => 'vagrant', 'shell' => nil},
+    'box_default'                   => {'user' => 'vagrant', 'shell' => []},
     'vms'                           => [{'name' => 'default', 'ip' => '192.168.123.123'}],
   }
 
@@ -182,7 +182,11 @@ Vagrant.configure(2) do |config|
       end
 
       # base shell commands
-      config.vm.provision 'shell', inline: val['box_settings'][val['box']]['shell'] if val['box_settings'][val['box']]['shell']
+      if val['box_settings'][val['box']]['shell']
+        val['box_settings'][val['box']]['shell'].each do |command|
+            config.vm.provision 'shell', inline: command
+        end
+      end
       # vm shell commands
       item.vm.provision 'shell', inline: val['shell'] if val['shell']
 
