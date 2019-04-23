@@ -16,7 +16,7 @@ def setup_cli():
 
 def build_inventory(host=None):
     ''' build inventory from vagrant.yml '''
-    config = yaml.load(open(os.path.join(os.path.dirname(__file__), 'vagrant.yml')))
+    config = yaml.safe_load(open(os.path.join(os.path.dirname(__file__), 'vagrant.yml')))
     domain = config['domain']
     inventory = {}
 
