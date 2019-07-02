@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-''' Dynamic inventory script for Ansible/Vagrant '''
+
 import argparse
 import json
 import os
@@ -23,16 +23,16 @@ def build_inventory(host=None):
     # build groups for a specific host
     def _gather_groups(inventory, host):
         for group in host['ansible_groups']:
-            if not inventory.has_key(group):
+            if group not in inventory:
                 inventory[group] = {}
                 inventory[group]['hosts'] = []
                 inventory[group]['vars'] = {}
             inventory[group]['hosts'].append(host['name'] + domain)
         # append box version
         box = sub(r"[/]", "_", config['box'])
-        if host.has_key('box'):
+        if 'box' in host:
             box = sub(r"[/]", "_", host['box'])
-        if not inventory.has_key(box):
+        if box not in inventory:
             inventory[box] = {}
             inventory[box]['hosts'] = []
             inventory[box]['vars'] = {}
@@ -51,9 +51,9 @@ def main():
     parser = setup_cli()
     args = parser.parse_args()
     if args.list:
-        print json.dumps(build_inventory())
+        print(json.dumps(build_inventory()))
     elif args.host:
-        print json.dumps(build_inventory(args.host))
+        print(json.dumps(build_inventory(args.host)))
     else:
         parser.print_help()
 
